@@ -21,13 +21,14 @@ from translation import Translation
 import pyrogram
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
-from helper_funcs.chat_base import TRChatBase
+#from helper_funcs.chat_base import TRChatBase
 from helper_funcs.display_progress import progress_for_pyrogram
 from helper_funcs.help_Nekmo_ffmpeg import take_screen_shot
 
 from pyrogram.types import InlineKeyboardButton
 from pyrogram.types import InlineKeyboardMarkup
 from pyrogram.errors import UserNotParticipant, UserBannedInChannel 
+from pyrogram import Client as Mai_bOTs 
 
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
@@ -35,19 +36,29 @@ from hachoir.parser import createParser
 from PIL import Image
 
 
-@pyrogram.Client.on_message(pyrogram.filters.command(["c2v"]))
+@Mai_bOTs.on_message(pyrogram.filters.command(["c2v"]))
 async def convert_to_video(bot, update):
-    if update.from_user.id in Config.BANNED_USERS:
-        await bot.send_message(
-            chat_id=update.chat.id,
-            text=Translation.BANNED_USER_TEXT,
-            reply_to_message_id=update.message_id
-        )
-        return
-    TRChatBase(update.from_user.id, update.text, "c2v")
+    update_channel = Config.UPDATE_CHANNEL
+    if update_channel:
+        try:
+            user = await bot.get_chat_member(update_channel, update.chat.id)
+            if user.status == "kicked":
+               await update.reply_text(" Sorry, You are **B A N N E D**")
+               return
+        except UserNotParticipant:
+            #await update.reply_text(f"Join @{update_channel} To Use Me")
+            await update.reply_text(
+                text="**Please Join My Update Channel Before Using Me..**",
+                reply_markup=InlineKeyboardMarkup([
+                    [ InlineKeyboardButton(text="Join My Updates Channel", url=f"https://t.me/{update_channel}")]
+              ])
+            )
+            return  
+    #TRChatBase(update.from_user.id, update.text, "c2v")
     if update.reply_to_message is not None:
-        description = Translation.CUSTOM_CAPTION_UL_FILE
+        
         download_location = Config.DOWNLOAD_LOCATION + "/"
+        file_name=download_location
         a = await bot.send_message(
             chat_id=update.chat.id,
             text=Translation.DOWNLOAD_START,
@@ -65,7 +76,7 @@ async def convert_to_video(bot, update):
             )
         )
         if the_real_download_location is not None:
-            bot.edit_message_text(
+            await bot.edit_message_text(
                 text=Translation.SAVED_RECVD_DOC_FILE,
                 chat_id=update.chat.id,
                 message_id=a.message_id
@@ -118,7 +129,6 @@ async def convert_to_video(bot, update):
             await bot.send_video(
                 chat_id=update.chat.id,
                 video=the_real_download_location,
-                caption=description,
                 duration=duration,
                 width=width,
                 height=height,
@@ -144,25 +154,9 @@ async def convert_to_video(bot, update):
                 message_id=a.message_id,
                 disable_web_page_preview=True
             )
-    update_channel = Config.UPDATE_CHANNEL
-    if update_channel:
-        try:
-            user = await bot.get_chat_member(update_channel, update.chat.id)
-            if user.status == "kicked":
-               await update.reply_text(" Sorry, You are **B A N N E D**")
-               return
-        except UserNotParticipant:
-            #await update.reply_text(f"Join @{update_channel} To Use Me")
-            await update.reply_text(
-                text="**Please Join My Update Channel Before Using Me..**",
-                reply_markup=InlineKeyboardMarkup([
-                    [ InlineKeyboardButton(text="Join My Updates Channel", url=f"https://t.me/{update_channel}")]
-              ])
-            )
-            return  
-        else:
-            await bot.send_message(
-                chat_id=update.chat.id,
-                text=Translation.REPLY_TO_DOC_FOR_RENAME_FILE,
-                reply_to_message_id=update.message_id
-            )
+    else:
+        await bot.send_message(
+            chat_id=update.chat.id,
+            text=Translation.REPLY_TO_FILE_FOR_CONVERT,
+            reply_to_message_id=update.message_id
+        )

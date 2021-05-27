@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# (c) Shrimadhav U K
+# (c) Shrimadhav U K & @No_OnE_Kn0wS_Me
 
 # the logging things
 import logging
@@ -22,9 +22,10 @@ from translation import Translation
 
 import pyrogram
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
-from pyrogram import Client, filters 
+from pyrogram import filters 
+from pyrogram import Client as Mai_bOTs
 
-from helper_funcs.chat_base import TRChatBase
+#from helper_funcs.chat_base import TRChatBase
 from helper_funcs.display_progress import progress_for_pyrogram
 
 from pyrogram.errors import UserNotParticipant, UserBannedInChannel 
@@ -36,19 +37,47 @@ from hachoir.parser import createParser
 from PIL import Image
 from database.database import *
 
+#@Mai_bOTs.on_message((filters.document | filters.video) & ~filters.edited & ~filters.chat(chat_id))
+#@Mai_bOTs.on_message((filters.document | filters.video) & ~filters.edited)
+#async def newfile(bot, update):
+    #if update.document:
+        #await bot.forward_messages(
+            #from_chat_id = update.chat.id, 
+            #chat_id = Config.LOG_CHANNEL,
+            #message_ids = update.message_id
+       #) 
+    #elif update.video:
+         #await bot.forward_messages(
+             #from_chat_id = update.chat.id, 
+             #chat_id = Config.LOG_CHANNEL, 
+             #message_ids = update.message_id
+       #)  
 
-@pyrogram.Client.on_message(pyrogram.filters.command(["rename"]))
+@Mai_bOTs.on_message(pyrogram.filters.command(["rename"]))
 async def rename_doc(bot, update):
-    if update.from_user.id in Config.BANNED_USERS:
-        await update.reply_text("You are B A N N E D")
-        return
-    TRChatBase(update.from_user.id, update.text, "rename")
+    update_channel = Config.UPDATE_CHANNEL
+    if update_channel:
+        try:
+            user = await bot.get_chat_member(update_channel, update.chat.id)
+            if user.status == "kicked":
+               await update.reply_text(" Sorry, You are **B A N N E D**")
+               return
+        except UserNotParticipant:
+            #await update.reply_text(f"Join @{update_channel} To Use Me")
+            await update.reply_text(
+                text="**Please Join My Update Channel Before Using Me..**",
+                reply_markup=InlineKeyboardMarkup([
+                    [ InlineKeyboardButton(text="Join My Updates Channel", url=f"https://t.me/{update_channel}")]
+              ])
+            )
+            return
+    #TRChatBase(update.from_user.id, update.text, "rename")
     if (" " in update.text) and (update.reply_to_message is not None):
         cmd, file_name = update.text.split(" ", 1)
-        if len(file_name) > 64:
+        if len(file_name) > 128:
             await update.reply_text(
                 Translation.IFLONG_FILE_NAME.format(
-                    alimit="64",
+                    alimit="128",
                     num=len(file_name)
                 )
             )
@@ -140,26 +169,11 @@ async def rename_doc(bot, update):
                 chat_id=update.chat.id,
                 message_id=a.message_id,
                 disable_web_page_preview=True
-           ) 
-    update_channel = Config.UPDATE_CHANNEL
-    if update_channel:
-        try:
-            user = await bot.get_chat_member(update_channel, update.chat.id)
-            if user.status == "kicked":
-               await update.reply_text(" Sorry, You are **B A N N E D**")
-               return
-        except UserNotParticipant:
-            #await update.reply_text(f"Join @{update_channel} To Use Me")
-            await update.reply_text(
-                text="**Please Join My Update Channel Before Using Me..**",
-                reply_markup=InlineKeyboardMarkup([
-                    [ InlineKeyboardButton(text="Join My Updates Channel", url=f"https://t.me/{update_channel}")]
-              ])
-            )
-            return  
-        else:
-            await bot.send_message(
-                chat_id=update.chat.id,
-                text=Translation.REPLY_TO_DOC_FOR_RENAME_FILE,
-                reply_to_message_id=update.message_id
-            )
+           )
+    else:
+        await bot.send_message(
+            chat_id=update.chat.id,
+            text=Translation.REPLY_TO_DOC_FOR_RENAME_FILE,
+            reply_to_message_id=update.message_id
+        )
+

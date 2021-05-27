@@ -3,7 +3,6 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
-
 import os
 
 if bool(os.environ.get("WEBHOOK", False)):
@@ -22,7 +21,7 @@ if __name__ == "__main__" :
         root="plugins"
     )
     app = pyrogram.Client(
-        "Zee5",
+        "RenameBot",
         bot_token=Config.TG_BOT_TOKEN,
         api_id=Config.APP_ID,
         api_hash=Config.API_HASH,

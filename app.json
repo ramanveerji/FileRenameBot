@@ -21,12 +21,7 @@
       "value": ""
     },
     "UPDATE_CHANNEL": {
-      "description": "For Force Subscribe. Paste your Update channel USERNAME (without @)..",
-      "value": "",
-      "required": false
-    },
-    "CHAT_BASE_TOKEN": {
-      "description": "Your chat base token, as a string.",
+      "description": "For Force Subscribe. Paste your Update channel USERNAME (without @).. Also Make The Bot Admin In That Channel!! ",
       "value": ""
     },
     "APP_ID": {
@@ -61,6 +56,8 @@
     }
   ],
   "buildpacks": [{
+    "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+  }, {
     "url": "heroku/python"
   }],
   "formation": {
